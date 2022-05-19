@@ -1,0 +1,130 @@
+Sub alph():
+
+    For Each ws In Worksheets
+        
+        ' keep track of the summary table
+        summary_table_row = 2
+        ' Initially define the total volume = 0
+        volume = 0
+        
+        ' Define the column name for our summary table
+        ws.Range("I1") = "Ticker"
+        ws.Range("L1") = "Total Stock Volume"
+        ws.Range("J1") = "Yearly Change"
+        ws.Range("K1") = "% Change"
+        
+        ' Define the last row of the dataset
+        last_row = ws.Cells(Rows.Count, 1).End(xlUp).Row
+    
+        
+        For i = 2 To last_row
+        ' Check if the ticker is still the same
+            If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+                ' define a new ticker
+                Ticker = ws.Cells(i, 1).Value
+                ' Add to the total volume
+                volume = volume + ws.Cells(i, 7).Value
+                
+                 ' Print the corresponding ticker to the summary table
+                ws.Range("I" & summary_table_row).Value = Ticker
+                ' Print the corresponding volume to the summary table
+                ws.Range("L" & summary_table_row).Value = volume
+                
+                ' reset the total volume since we don't want the next ticker's volume include the previous ticker's volume
+                volume = 0
+                
+                ' Define close_stock
+                ' Since the dataset had been sorted in the manner that all the same tickers are grouped together
+                ' Since we are checking if the next cell is not the same as the current cell, so the current cell
+                ' contain the closing price at the end of the year for that ticker
+                stock_close = ws.Cells(i, 6).Value
+                
+                If stock_open = 0 Then
+                    yearly_change = 0
+                    percent_change = 0
+                Else
+                    yearly_change = stock_close - stock_open
+                    percent_change = (stock_close - stock_open) / stock_open
+                    
+                ws.Range("J" & summary_table_row).Value = yearly_change
+                ws.Range("K" & summary_table_row).Value = percent_change
+                ws.Range("K" & summary_table_row).Style = "Percent"
+                ws.Range("K" & summary_table_row).NumberFormat = "0.00%"
+                
+                ' Increment summary table to the next row
+                summary_table_row = summary_table_row + 1
+                End If
+                
+            ' Define open_stock
+            ' open_stock will appear in the first row of a ticker group
+            ' to find the open_stock we need to check if the current ticker is the same as the previous ticker
+            ElseIf ws.Cells(i - 1, 1) <> ws.Cells(i, 1) Then
+                
+                stock_open = ws.Cells(i, 3).Value
+            
+                
+            Else
+                volume = volume + ws.Cells(i, 7).Value
+                
+            
+            End If
+        Next i
+        
+        For i = 2 To last_row
+            
+            If ws.Range("J" & i) > 0 Then
+                ws.Range("J" & i).Interior.ColorIndex = 4
+            Else
+                ws.Range("J" & i).Interior.ColorIndex = 3
+            End If
+        Next i
+        
+        
+        ' return the stock with the "Greatest % increase", "Greatest % decrease" and "Greatest total volume".
+        ws.Range("P1").Value = "Ticker"
+        ws.Range("Q1").Value = "Value"
+        
+        ws.Range("O2").Value = "Greatest % Increase"
+        ws.Range("O3").Value = "Greatest % Decrease"
+        ws.Range("O4").Value = "Greatest Total Volume"
+        
+        increase = 0
+        decrease = 0
+        greatest_volume = 0
+        
+        For a = 2 To last_row
+            If ws.Cells(a, 11).Value > increase Then
+                increase = ws.Cells(a, 11).Value
+                ws.Range("Q2").Value = increase
+                ws.Range("Q2").Style = "Percent"
+                ws.Range("Q2").NumberFormat = "0.00%"
+                ws.Range("P2").Value = ws.Cells(a, 9).Value
+                
+            End If
+        Next a
+        
+        
+        For b = 2 To last_row
+            If ws.Cells(b, 11) < decrease Then
+                decrease = ws.Cells(b, 11).Value
+                ws.Range("Q3").Value = decrease
+                ws.Range("Q3").Style = "Percent"
+                ws.Range("Q3").NumberFormat = "0.00%"
+                ws.Range("P3").Value = ws.Cells(b, 9).Value
+            End If
+        Next b
+        
+        For c = 2 To last_row
+            If ws.Cells(c, 12) > greatest_volume Then
+                greatest_volume = ws.Cells(c, 12).Value
+                ws.Range("Q4").Value = greatest_volume
+                ws.Range("P4").Value = ws.Cells(c, 9).Value
+            End If
+            
+        Next c
+    
+Next ws
+
+
+End Sub
+
